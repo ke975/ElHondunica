@@ -1,0 +1,204 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL") // ej: mysql://user:pass@localhost:3306/gestion_agricola
+}
+
+model Usuario {
+  id_usuario    Int      @id @default(autoincrement())
+  nombre        String
+  email         String   @unique
+  passwordHash  String
+  rol           Rol      @default(PRODUCTOR)
+  telefono      String?
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  fincas       Finca[]
+  labores      LaborAgricola[]
+  aplicaciones Aplicacion[]
+}
+
+model Finca {
+  id_finca      Int      @id @default(autoincrement())
+  id_usuario    Int
+  nombre        String
+  descripcion   String?
+  latitud       Float?
+  longitud      Float?
+  area_total    Float?
+  direccion     String?
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  usuario  Usuario          @relation(fields: [id_usuario], references: [id_usuario])
+  cultivos Cultivo[]
+  costos   CostoAdicional[]
+}
+
+model Cultivo {
+  id_cultivo    Int           @id @default(autoincrement())
+  id_finca      Int
+  nombreCultivo String?
+  tipoCultivo   String
+  variedad      String?
+  areaAsignada  Float?
+  fechaInicio   DateTime?
+  fechaFin      DateTime?
+  estado        EstadoCultivo @default(PLANIFICADO)
+  creadoEn      DateTime      @default(now())
+  actualizadoEn DateTime      @updatedAt
+
+  finca           Finca                @relation(fields: [id_finca], references: [id_finca])
+  labores         LaborAgricola[]
+  manejos         ManejoAgronomico[]
+  aplicaciones    Aplicacion[]
+  cosechas        Cosecha[]
+  costosAdicional CostoAdicional[]
+  analisis        AnalisisFinanciero[]
+}
+
+model LaborAgricola {
+  id_labor      Int      @id @default(autoincrement())
+  id_cultivo    Int
+  tipoLabor     String
+  descripcion   String?
+  fecha         DateTime
+  costo         Float    @default(0)
+  duracionHoras Float?
+  realizadoPor  Int?
+
+  cultivo Cultivo  @relation(fields: [id_cultivo], references: [id_cultivo])
+  usuario Usuario? @relation(fields: [realizadoPor], references: [id_usuario])
+}
+
+model ManejoAgronomico {
+  id_manejo    Int             @id @default(autoincrement())
+  id_cultivo   Int
+  categoria    CategoriaManejo @default(OTRO)
+  nombreInsumo String
+  presentacion String?
+  cantidad     Float?
+  unidad       String?
+  costo        Float           @default(0)
+  fecha        DateTime
+  proveedor    String?
+  notas        String?
+
+  cultivo Cultivo @relation(fields: [id_cultivo], references: [id_cultivo])
+}
+
+model Aplicacion {
+  id_aplicacion  Int            @id @default(autoincrement())
+  id_cultivo     Int
+  tipoAplicacion TipoAplicacion @default(OTRO)
+  producto       String
+  dosis          String?
+  volumen        Float?
+  unidad         String?
+  costo          Float          @default(0)
+  fecha          DateTime
+  operadorId     Int?
+  observaciones  String?
+
+  cultivo  Cultivo  @relation(fields: [id_cultivo], references: [id_cultivo])
+  operador Usuario? @relation(fields: [operadorId], references: [id_usuario])
+}
+
+model Cosecha {
+  id_cosecha     Int      @id @default(autoincrement())
+  id_cultivo     Int
+  fecha          DateTime
+  cantidad       Float
+  unidad         String   @default("kg")
+  calidad        Calidad  @default(MEDIA)
+  precioUnitario Float?   @default(0)
+  notas          String?
+
+  cultivo     Cultivo      @relation(fields: [id_cultivo], references: [id_cultivo])
+  transportes Transporte[]
+}
+
+model CostoAdicional {
+  id_costo       Int      @id @default(autoincrement())
+  id_cultivo     Int?
+  id_finca       Int?
+  tipoCosto      String
+  descripcion    String?
+  monto          Float
+  fecha          DateTime
+  relacionadoCon String?
+
+  cultivo Cultivo? @relation(fields: [id_cultivo], references: [id_cultivo])
+  finca   Finca?   @relation(fields: [id_finca], references: [id_finca])
+}
+
+model Transporte {
+  id_transporte Int      @id @default(autoincrement())
+  id_cosecha    Int?
+  fecha         DateTime
+  origen        String?
+  destino       String?
+  distanciaKm   Float?
+  costo         Float
+  comentario    String?
+
+  cosecha Cosecha? @relation(fields: [id_cosecha], references: [id_cosecha])
+}
+
+model AnalisisFinanciero {
+  id_analisis     Int       @id @default(autoincrement())
+  id_cultivo      Int
+  periodoInicio   DateTime?
+  periodoFin      DateTime?
+  ingresosTotales Float     @default(0)
+  costosTotales   Float     @default(0)
+  utilidad        Float? // se puede calcular en queries
+  rentabilidad    Float? // idem
+  notas           String?
+  calculadoEn     DateTime  @default(now())
+
+  cultivo Cultivo @relation(fields: [id_cultivo], references: [id_cultivo])
+}
+
+//
+// ENUMS
+//
+enum Rol {
+  ADMIN
+  TECNICO
+  PRODUCTOR
+  ANALISTA
+}
+
+enum EstadoCultivo {
+  ACTIVO
+  FINALIZADO
+  PLANIFICADO
+}
+
+enum CategoriaManejo {
+  FERTILIZANTE
+  HERBICIDA
+  ENMIENDA
+  SERVICIO
+  OTRO
+}
+
+enum TipoAplicacion {
+  INSECTICIDA
+  FUNGICIDA
+  ACARICIDA
+  OTRO
+}
+
+enum Calidad {
+  ALTA
+  MEDIA
+  BAJA
+}
