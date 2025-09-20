@@ -94,7 +94,7 @@ Reportes: Chart.js o Recharts
 
 Clonar el repositorio:
 
-git clone https://github.com/tu-usuario/gestion-agricola.git
+git clone https://github.com/ke975/ElHondunica.git
 
 
 Instalar dependencias:
