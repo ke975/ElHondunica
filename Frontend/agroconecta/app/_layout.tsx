@@ -19,7 +19,11 @@ function Root() {
       {user ? (
         <Stack.Screen name="(tabs)" />  // Pantalla principal
       ) : (
-        <Stack.Screen name="login" />   // Login (archivo login.tsx)
+        <>
+          <Stack.Screen name="login" />    {/* Login */}
+          <Stack.Screen name="register" /> {/* Register */}
+        </>
+      
       )}
     </Stack>
   );

@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -13,17 +13,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Router } from "expo-router";
 
-export default function Register() {
-  const [nombre, setNombre] = useState("");
-  const [email, setUsEmail] = useState("");
+export default function Login() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [phone, setPhone] = useState("");
 
+  const router = useRouter();
   const validateFields = () => {
-    if (!nombre.trim() || !email.trim() || !password.trim() || !phone.trim()) {
-      Alert.alert("Error", "Todos los campos son obligatorios");
+    if (!email.trim() || !password.trim()) {
+      Alert.alert("Error", "Correo y contraseña son obligatorios");
       return false;
     }
     if (password.length < 6) {
@@ -33,27 +33,23 @@ export default function Register() {
     return true;
   };
 
-  const handleRegister = async () => {
-    if (!validateFields()) return;
+const handleLogin = async () => {
+  try {
+    await fetch("http://192.168.175.1/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-    try {
-      const response = await fetch("http://192.168.175.1/api/usuarios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, email, password, phone }),
-      });
-      const data = await response.json();
+    // Navegar a la tab Explore
+    router.replace("/(tabs)/explore");
+  } catch (error) {
+    Alert.alert("Error", "No se pudo conectar con el servidor");
+    console.error(error);
+  }
+};
 
-      if (response.ok) {
-        Alert.alert("Éxito", "Registro exitoso");
-      } else {
-        Alert.alert("Error", data.message || "Error en el registro");
-      }
-    } catch (error) {
-      Alert.alert("Error", "No se pudo conectar con el servidor");
-      console.error(error);
-    }
-  };
+
 
   return (
     <KeyboardAvoidingView
@@ -66,45 +62,34 @@ export default function Register() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        <Image
-          source={require("../assets/logo.jpeg")}
-          style={styles.image}
-          resizeMode="contain"
-        />
+          <Image
+                 source={require("../assets/logo.jpeg")}
+                 style={styles.image}
+                 resizeMode="contain"
+               />
 
         {/* Tabs */}
         <View style={styles.tabContainer}>
-            <Link href="/login">
-          <Text style={[styles.tab, { color: "#000" }]}>Login</Text>
-         </Link>
-          <Text style={[styles.tab, styles.activeTab]}>Register</Text>
+          <Text style={[styles.tab, styles.activeTab]}>Login</Text>
+          <Link href="/register">
+            <Text style={styles.tab}>Register</Text>
+          </Link>
         </View>
 
         {/* Title */}
-        <Text style={styles.title}>Registro</Text>
-        <Text style={styles.subtitle}>Crea tu cuenta</Text>
+        <Text style={styles.title}>Bienvenido</Text>
+        <Text style={styles.subtitle}>Ingresa a tu cuenta</Text>
+          <Link href="/(tabs)/explore">
+            <Text style={styles.tab}>Dashboard</Text>
+          </Link>
 
         {/* Inputs */}
         <TextInput
           style={styles.input}
-          placeholder="Nombre"
-          value={nombre}
-          onChangeText={setNombre}
-        />
-        <TextInput
-          style={styles.input}
           placeholder="Correo Electrónico"
           value={email}
-          onChangeText={setUsEmail}
+          onChangeText={setEmail}
           keyboardType="email-address"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Teléfono"
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="phone-pad"
-          maxLength={15}
         />
         <View style={styles.passwordContainer}>
           <TextInput
@@ -122,9 +107,9 @@ export default function Register() {
           </TouchableOpacity>
         </View>
 
-        {/* Register Button */}
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-          <Text style={styles.registerButtonText}>Registrar</Text>
+        {/* Login Button */}
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.loginButtonText}>Ingresar</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -197,7 +182,7 @@ const styles = StyleSheet.create({
   eyeIcon: {
     padding: 12,
   },
-  registerButton: {
+  loginButton: {
     backgroundColor: "#009245",
     padding: 16,
     borderRadius: 12,
@@ -205,7 +190,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     width: 320,
   },
-  registerButtonText: {
+  loginButtonText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,

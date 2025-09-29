@@ -5,7 +5,7 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/register"); // Redirige automáticamente al login
+    router.replace("/login"); // Redirige automáticamente al login
   }, []);
 
   return null;
