@@ -1,5 +1,7 @@
 import { Image } from "expo-image";
-import { FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
 
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
@@ -17,41 +19,51 @@ const products = [
 export default function EcommerceScreen() {
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#E6F4EA", dark: "#1C1C1C" }}
+      headerBackgroundColor={{ light: "#FFFFFF", dark: "#1C1C1C" }}
       headerImage={
         <IconSymbol
           size={220}
-          color="#A1D700" // Verde Lima
+          color="#3BB54A"
           name="basket.fill"
           style={styles.headerIcon}
         />
       }
     >
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title" style={{ fontFamily: Fonts.rounded, color: "#A1D700" }}>
+        <Animated.Text entering={FadeInUp.duration(600)} style={styles.title}>
           Marketplace para Emprendedores
-        </ThemedText>
+        </Animated.Text>
+        <Animated.Text entering={FadeInUp.delay(200)} style={styles.subtitle}>
+          Descubre productos únicos de emprendedores locales 🛒
+        </Animated.Text>
       </ThemedView>
-
-      <ThemedText style={styles.subtitle}>
-        Descubre productos únicos de emprendedores locales 🛒
-      </ThemedText>
 
       <FlatList
         data={products}
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: 20 }}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        renderItem={({ item }) => (
-          <ThemedView style={styles.productCard}>
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+        renderItem={({ item, index }) => (
+          <Animated.View entering={FadeInUp.delay(300 + index * 100)} style={styles.productCard}>
             <Image source={{ uri: item.image }} style={styles.productImage} />
-            <ThemedText type="defaultSemiBold" style={styles.productName}>{item.name}</ThemedText>
-            <ThemedText style={styles.productPrice}>${item.price.toFixed(2)}</ThemedText>
-            <TouchableOpacity style={styles.addButton}>
-              <ThemedText type="defaultSemiBold" style={styles.addButtonText}>Agregar al carrito</ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
+            <View style={styles.productInfo}>
+              <ThemedText type="defaultSemiBold" style={styles.productName}>{item.name}</ThemedText>
+              <ThemedText style={styles.productPrice}>${item.price.toFixed(2)}</ThemedText>
+              <TouchableOpacity activeOpacity={0.85}>
+                <LinearGradient
+                  colors={["#3BB54A", "#34A853"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.addButton}
+                >
+                  <ThemedText type="defaultSemiBold" style={styles.addButtonText}>
+                    Agregar al carrito
+                  </ThemedText>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
         )}
       />
     </ParallaxScrollView>
@@ -65,54 +77,59 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   titleContainer: {
-    marginBottom: 8,
-    paddingHorizontal: 10,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+  },
+  title: {
+    fontFamily: Fonts.rounded,
+    fontSize: 24,
+    fontWeight: '700',
+    color: "#3BB54A",
+    textAlign: "center",
+    marginBottom: 6,
   },
   subtitle: {
     fontSize: 16,
-    color: "#00B0FF", // Azul Cielo
-    marginBottom: 20,
-    fontWeight: "500",
-    textAlign: 'center',
+    color: "#6B7280", // gris elegante
+    textAlign: "center",
   },
   productCard: {
     flex: 1,
-    backgroundColor: "#FFFDF5", // Fondo cálido elegante
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 12,
-    alignItems: "center",
     shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 4,
     marginHorizontal: 5,
-    borderWidth: 1,
-    borderColor: "#E6E6E6",
+    overflow: "hidden",
   },
   productImage: {
-    width: '100%',
-    height: 150,
-    borderRadius: 16,
-    marginBottom: 12,
+    width: "100%",
+    height: 160,
+  },
+  productInfo: {
+    padding: 12,
+    alignItems: "center",
   },
   productName: {
-    fontSize: 15,
-    color: "#FF6D00", // Naranja Vibrante
-    marginBottom: 4,
-    textAlign: "center",
-  },
-  productPrice: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#FFC107", // Amarillo Sol
+    color: "#111827",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  productPrice: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#10B981",
     marginBottom: 10,
   },
   addButton: {
-    backgroundColor: "#A1D700", // Verde Lima
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     width: '100%',
     alignItems: 'center',
   },

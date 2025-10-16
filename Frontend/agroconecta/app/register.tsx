@@ -1,4 +1,6 @@
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
   Alert,
@@ -13,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { auth, db } from "../lib/firebase"; // 🔥 importamos nuestra configuración
 
 export default function Register() {
   const [nombre, setNombre] = useState("");
@@ -20,6 +23,9 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState("");
+  const [role, setRole] = useState("user")
+
+  const router = useRouter();
 
   const validateFields = () => {
     if (!nombre.trim() || !email.trim() || !password.trim() || !phone.trim()) {
@@ -37,21 +43,29 @@ export default function Register() {
     if (!validateFields()) return;
 
     try {
-      const response = await fetch("http://192.168.175.1/api/usuarios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, email, password, phone }),
-      });
-      const data = await response.json();
+      // 🔹 Crear usuario en Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      if (response.ok) {
-        Alert.alert("Éxito", "Registro exitoso");
-      } else {
-        Alert.alert("Error", data.message || "Error en el registro");
-      }
+      // 🔹 Guardar datos adicionales en Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        nombre,
+        email,
+        phone,
+        role,
+        createdAt: serverTimestamp(),
+      });
+
+      Alert.alert("✅ Éxito", "Registro exitoso");
+      router.replace("/(tabs)/explore"); // ir al dashboard
     } catch (error) {
-      Alert.alert("Error", "No se pudo conectar con el servidor");
       console.error(error);
+      let message = "Error al registrar usuario";
+      if (error.code === "auth/email-already-in-use") message = "El correo ya está en uso";
+      else if (error.code === "auth/invalid-email") message = "Correo inválido";
+      else if (error.code === "auth/weak-password") message = "Contraseña muy débil";
+      Alert.alert("Error", message);
     }
   };
 
@@ -74,9 +88,9 @@ export default function Register() {
 
         {/* Tabs */}
         <View style={styles.tabContainer}>
-            <Link href="/login">
-          <Text style={[styles.tab, { color: "#000" }]}>Login</Text>
-         </Link>
+          <Link href="/login">
+            <Text style={[styles.tab, { color: "#000" }]}>Login</Text>
+          </Link>
           <Text style={[styles.tab, styles.activeTab]}>Register</Text>
         </View>
 
@@ -98,6 +112,13 @@ export default function Register() {
           onChangeText={setUsEmail}
           keyboardType="email-address"
         />
+      <TextInput
+  style={styles.input}
+  placeholder="Role"
+  value={role}
+  onChangeText={setRole}
+  editable={false}  // <-- aquí lo deshabilitas
+/>
         <TextInput
           style={styles.input}
           placeholder="Teléfono"

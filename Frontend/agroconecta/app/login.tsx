@@ -1,4 +1,5 @@
 import { Link, useRouter } from "expo-router";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
 import {
   Alert,
@@ -13,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Router } from "expo-router";
+import { auth } from "../lib/firebase"; // 🔥 Importa Firebase Auth
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -21,6 +22,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
+
   const validateFields = () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert("Error", "Correo y contraseña son obligatorios");
@@ -33,23 +35,22 @@ export default function Login() {
     return true;
   };
 
-const handleLogin = async () => {
-  try {
-    await fetch("http://192.168.175.1/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+  const handleLogin = async () => {
+    if (!validateFields()) return;
 
-    // Navegar a la tab Explore
-    router.replace("/(tabs)/explore");
-  } catch (error) {
-    Alert.alert("Error", "No se pudo conectar con el servidor");
-    console.error(error);
-  }
-};
-
-
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      Alert.alert("✅ Éxito", "Inicio de sesión correcto");
+      router.replace("/(tabs)/"); // Ir al dashboard
+    } catch (error) {
+      console.error(error);
+      let message = "Error al iniciar sesión";
+      if (error.code === "auth/user-not-found") message = "Usuario no encontrado";
+      else if (error.code === "auth/wrong-password") message = "Contraseña incorrecta";
+      else if (error.code === "auth/invalid-email") message = "Correo inválido";
+      Alert.alert("Error", message);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -62,11 +63,11 @@ const handleLogin = async () => {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-          <Image
-                 source={require("../assets/logo.jpeg")}
-                 style={styles.image}
-                 resizeMode="contain"
-               />
+        <Image
+          source={require("../assets/logo.jpeg")}
+          style={styles.image}
+          resizeMode="contain"
+        />
 
         {/* Tabs */}
         <View style={styles.tabContainer}>
@@ -79,9 +80,6 @@ const handleLogin = async () => {
         {/* Title */}
         <Text style={styles.title}>Bienvenido</Text>
         <Text style={styles.subtitle}>Ingresa a tu cuenta</Text>
-          <Link href="/(tabs)/explore">
-            <Text style={styles.tab}>Dashboard</Text>
-          </Link>
 
         {/* Inputs */}
         <TextInput
@@ -115,6 +113,7 @@ const handleLogin = async () => {
     </KeyboardAvoidingView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

@@ -34,21 +34,29 @@ export default function TabLayout() {
         name="farm"
         options={{
           title: 'Fincas',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="a.magnify" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chevron.right" color={color} />,
         }}
       />
     <Tabs.Screen
-        name="sale"
+        name="sales"
         options={{
           title: 'comercio',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
         }}
       />
         <Tabs.Screen
         name="ganadery"
         options={{
           title: 'sector ganadero',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="star" color={color} />,
+        }}
+      />
+
+            <Tabs.Screen
+        name="Noha"
+        options={{
+          title: 'IA',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="bubble.left.and.bubble.right.fill" color={color} />,
         }}
       />
     </Tabs>
